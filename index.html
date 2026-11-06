@@ -33,12 +33,14 @@ button:disabled{opacity:.6;cursor:wait}
 #result{display:none;margin:12px 0 0;padding:16px;border:1px dashed var(--border);border-radius:8px}
 #result audio{width:100%;margin:0 0 10px}
 #result a{color:var(--accent);font-weight:600}
+.ver{display:inline-block;vertical-align:middle;font-size:.8rem;font-weight:600;color:#fff;background:var(--accent);border-radius:999px;padding:2px 10px;margin-left:6px}
+footer a{color:var(--accent)}
 footer{text-align:center;color:var(--muted);font-size:.85rem;margin:28px 0 0}
 </style>
 </head>
 <body>
 <main>
-<h1>Convertisseur de fichiers G711</h1>
+<h1>Convertisseur de fichiers G711 <span class="ver" title="Version de l'outil">v1.1.0</span></h1>
 <p class="intro">Cet outil gratuit convertit à peu près n'importe quel fichier multimédia sans DRM en un fichier audio compatible avec la musique d'attente et les annonces SVI de la plupart des fabricants de téléphonie.</p>
 
 <div class="record">
@@ -89,12 +91,21 @@ footer{text-align:center;color:var(--muted);font-size:.85rem;margin:28px 0 0}
 <div id="result"><audio id="player" controls></audio><a id="dl" href="#">Télécharger le fichier converti</a></div>
 </form>
 
-<footer>La conversion se fait entièrement dans votre navigateur : vos fichiers ne sont envoyés à aucun serveur.</footer>
+<footer>La conversion se fait entièrement dans votre navigateur : vos fichiers ne sont envoyés à aucun serveur.<br>Version 1.1.0 · 6 novembre 2026 · <a href="CHANGELOG.md">Historique des versions</a></footer>
 </main>
 
 <script>
 const $ = id => document.getElementById(id);
 const MAX = 50 * 1024 * 1024;
+// Format inscrit dans le nom du fichier de sortie
+const FORMAT_LABELS = {
+  ulaw: 'G711-ulaw_8kHz_mono',
+  alaw: 'G711-alaw_8kHz_mono',
+  pcm8: 'PCM-8bit_8kHz_mono',
+  pcm16: 'PCM-16bit_8kHz_mono',
+  hd: 'PCM-16bit_16kHz_mono',
+  raw: 'RAW-SLN-16bit_8kHz_mono'
+};
 let lastUrl = null;
 
 function setStatus(msg, cls){ const s=$('status'); s.textContent=msg; s.className=cls||''; }
@@ -176,7 +187,7 @@ $('conv').addEventListener('submit', async e => {
     const r = await convert(file, fmt, parseFloat($('vol').value), $('bp').checked);
     if(lastUrl) URL.revokeObjectURL(lastUrl);
     lastUrl = URL.createObjectURL(new Blob([r.buf], {type:r.type}));
-    const name = file.name.replace(/\.[^.]+$/, '') + '_' + fmt + '.' + r.ext;
+    const name = file.name.replace(/\.[^.]+$/, '') + '_' + FORMAT_LABELS[fmt] + '.' + r.ext;
     $('dl').href = lastUrl; $('dl').download = name; $('dl').textContent = 'Télécharger ' + name;
     // Les navigateurs ne lisent pas toujours le µ-law/A-law ni le RAW : pas d'aperçu pour ces formats
     const playable = !(fmt==='ulaw'||fmt==='alaw'||fmt==='raw');
